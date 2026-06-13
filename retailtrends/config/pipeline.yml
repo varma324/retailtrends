@@ -1,0 +1,111 @@
+# ─────────────────────────────────────────────────────────────
+# Pipeline Configuration  —  config/pipeline.yml
+# Single source of truth for all operational settings.
+# Edit this file to change keywords, geographies, or run options
+# without touching any Python code.
+#
+# Loaded by: src/utils/settings.py
+# ─────────────────────────────────────────────────────────────
+
+# ── Google Trends collector settings ─────────────────────────
+collector:
+  geo:            "US"
+  timeframe:      "today 12-m"
+  sleep_seconds:  2.0
+  retries:        3
+  backoff_factor: 1             # Must be int (pytrends requirement)
+
+# ── Retail categories  ────────────────────────────────────────
+# Keys become category labels in Delta tables / output files.
+# Max 5 keywords per category (Google Trends hard limit per request).
+# pipeline.keywords              -> flat list of ALL keywords
+# pipeline.retail_categories     -> {category: [keywords]} dict
+retail_categories:
+  discount_retail:
+    - "Five Below"
+    - "Dollar Tree"
+    - "discount retail"
+    - "affordable toys"
+    - "budget shopping"
+  teen_culture:
+    - "teen fashion"
+    - "fidget toys"
+    - "squishmallow"
+    - "stanley cups"
+    - "viral products"
+  shopping_events:
+    - "back to school shopping"
+    - "holiday gifts under 10"
+    - "Black Friday deals"
+    - "Cyber Monday"
+    - "Prime Day"
+  apparel:
+    - "Nike"
+    - "Adidas"
+    - "Zara"
+    - "H&M"
+    - "Shein"
+  electronics:
+    - "iPhone"
+    - "Samsung Galaxy"
+    - "MacBook"
+    - "iPad"
+    - "Sony"
+  home_goods:
+    - "IKEA"
+    - "Wayfair"
+    - "Home Depot"
+    - "Target"
+    - "Bed Bath Beyond"
+  grocery:
+    - "Walmart"
+    - "Costco"
+    - "Whole Foods"
+    - "Amazon Fresh"
+    - "Trader Joes"
+
+# ── Company profiles  ─────────────────────────────────────────
+# Used by get_company_snapshot().
+# category must match a key in retail_categories above.
+company_profiles:
+  Nike:          { category: apparel,      keyword: "Nike"           }
+  Adidas:        { category: apparel,      keyword: "Adidas"         }
+  Zara:          { category: apparel,      keyword: "Zara"           }
+  "H&M":         { category: apparel,      keyword: "H&M"            }
+  Shein:         { category: apparel,      keyword: "Shein"          }
+  Apple:         { category: electronics,  keyword: "iPhone"         }
+  Samsung:       { category: electronics,  keyword: "Samsung Galaxy" }
+  Microsoft:     { category: electronics,  keyword: "MacBook"        }
+  IKEA:          { category: home_goods,   keyword: "IKEA"           }
+  Wayfair:       { category: home_goods,   keyword: "Wayfair"        }
+  Walmart:       { category: grocery,      keyword: "Walmart"        }
+  Costco:        { category: grocery,      keyword: "Costco"         }
+  "Whole Foods": { category: grocery,      keyword: "Whole Foods"    }
+
+# ── Primary geography ─────────────────────────────────────────
+geo:
+  primary: "US"
+
+# ── Countries for multi-country comparison ────────────────────
+# Format: "Display Name": "pytrends geo code"
+countries:
+  "United States": "US"
+  "United Kingdom": "GB"
+  "Germany":        "DE"
+  "France":         "FR"
+  "Canada":         "CA"
+  "Australia":      "AU"
+  "Japan":          "JP"
+  "Brazil":         "BR"
+  "India":          "IN"
+  "South Korea":    "KR"
+
+# ── Output options ────────────────────────────────────────────
+output:
+  dir:                   "demo_output"
+  include_geo_breakdown: true
+  include_related:       true
+  include_worldwide:     true
+  resolutions:
+    - "REGION"
+    - "CITY"

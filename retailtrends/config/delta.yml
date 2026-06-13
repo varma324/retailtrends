@@ -1,0 +1,35 @@
+# ─────────────────────────────────────────────────────────────
+# Delta Lake / Databricks Unity Catalog Configuration
+# Edit this file for environment-specific paths and table names.
+# Referenced by: src/utils/settings.py
+# ─────────────────────────────────────────────────────────────
+
+# ── Unity Catalog coordinates ─────────────────────────────────
+unity_catalog:
+  catalog:  "retail_warehouse"          # UC catalog
+  schema:   "google_trends"             # schema inside catalog
+  # Three-part name used for SQL / DLT:
+  #   retail_warehouse.google_trends.<table>
+
+# ── Table names (short names — catalog.schema is prepended) ───
+tables:
+  bronze: "bronze_raw_trends"
+  silver: "silver_clean_trends"
+  gold:   "gold_trade_scale"
+
+# ── External Delta storage path (used by notebooks if UC
+#    external location is not configured) ─────────────────────
+delta:
+  base_path: "/mnt/delta/retail_warehouse/google_trends"
+
+# ── Databricks job cluster settings ──────────────────────────
+cluster:
+  spark_version: "14.3.x-scala2.12"
+  node_type_id:  "Standard_DS3_v2"
+  num_workers:   2
+
+# ── Workflow schedule ─────────────────────────────────────────
+schedule:
+  cron:     "0 0 6 ? * MON"     # Every Monday 06:00 UTC
+  timezone: "UTC"
+  enabled:  true
