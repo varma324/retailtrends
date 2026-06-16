@@ -1,0 +1,16 @@
+# Requirements for retailtrends project
+
+# Core data processing
+pandas>=2.0.0
+pyyaml>=6.0
+
+# Google Trends API (unofficial)
+pytrends>=4.9.0
+
+# IMPORTANT: pytrends 4.9.x is incompatible with urllib3 >= 2.0
+# The 'method_whitelist' parameter was renamed to 'allowed_methods' in urllib3 2.0
+# Until pytrends is updated, we need to use urllib3 < 2.0
+urllib3<2.0
+
+# Alternative fix: Install the latest pytrends from GitHub
+# pip install git+https://github.com/GeneralMills/pytrends.git

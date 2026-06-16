@@ -45,7 +45,84 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-from pytrends.request import TrendReq
+
+# Fix for pytrends compatibility with newer urllib3 versions
+try:
+    from pytrends.request import TrendReq as _OriginalTrendReq
+    from urllib3.util.retry import Retry
+    from requests.adapters import HTTPAdapter
+    import requests
+    
+    class TrendReq(_OriginalTrendReq):
+        """Patched TrendReq that handles both urllib3 v1.x and v2.x"""
+        
+        def __init__(self, hl='en-US', tz=360, geo='', timeout=(2, 5),
+                     proxies='', retries=0, backoff_factor=0, requests_args=None):
+            """Initialize with compatibility for both urllib3 versions."""
+            # Set basic attributes (from original TrendReq)
+            self.google_rl = 'You have reached your quota limit. Please try again later.'
+            self.results = None
+            self.hl = hl
+            self.tz = tz
+            self.geo = geo
+            self.kw_list = []
+            self.timeout = timeout
+            self.proxies = proxies
+            self.retries = retries
+            self.backoff_factor = backoff_factor
+            self.proxy_index = 0
+            self.requests_args = requests_args or {}
+            
+            # Get cookies
+            self.cookies = self.GetGoogleCookie()
+            
+            # Initialize widget payloads
+            self.token_payload = {}
+            self.interest_over_time_widget = {}
+            self.interest_by_region_widget = {}
+            self.related_topics_widget_list = []
+            self.related_queries_widget_list = []
+            
+            # Set headers
+            self.headers = {'accept-language': self.hl}
+            self.headers.update(self.requests_args.pop('headers', {}))
+            
+            # Create session
+            self.session = requests.Session()
+            if self.requests_args:
+                for key, val in self.requests_args.items():
+                    setattr(self.session, key, val)
+            
+            # Configure retry with compatibility
+            try:
+                # Try new urllib3 v2.x parameter name
+                retry = Retry(
+                    total=retries,
+                    read=retries,
+                    connect=retries,
+                    backoff_factor=backoff_factor,
+                    status_forcelist=_OriginalTrendReq.ERROR_CODES,
+                    allowed_methods=frozenset(['GET', 'POST'])
+                )
+            except TypeError:
+                # Fall back to old urllib3 v1.x parameter name
+                retry = Retry(
+                    total=retries,
+                    read=retries,
+                    connect=retries,
+                    backoff_factor=backoff_factor,
+                    status_forcelist=_OriginalTrendReq.ERROR_CODES,
+                    method_whitelist=frozenset(['GET', 'POST'])  # type: ignore[call-arg]
+                )
+            
+            adapter = HTTPAdapter(max_retries=retry)
+            self.session.mount('https://', adapter)
+            self.session.mount('http://', adapter)
+    
+except ImportError:
+    print("ERROR: pytrends not installed. Run: pip install pytrends")
+    import sys
+    sys.exit(1)
 
 # ── Output directory (project-relative) ──────────────────────
 _HERE       = Path(__file__).resolve().parent
@@ -557,7 +634,7 @@ def main() -> dict:
 
     # Determine what to fetch
     fetch_trends = args.trends_only or args.all or (not args.categories_only)
-    fetch_categories = args.categories_only or args.all
+    fetch_cats = args.categories_only or args.all
     
     trending_df = pd.DataFrame()
     realtime_df = pd.DataFrame()
@@ -588,7 +665,7 @@ def main() -> dict:
                 print("\n  ⚠️   No real-time trends available\n")
 
     # ── 2. Fetch Categories ────────────────────────────────────
-    if fetch_categories:
+    if fetch_cats:
         print("\n📁 FETCHING CATEGORY HIERARCHY")
         print("-" * 65)
         
