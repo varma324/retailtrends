@@ -14,3 +14,7 @@ urllib3<2.0
 
 # Alternative fix: Install the latest pytrends from GitHub
 # pip install git+https://github.com/GeneralMills/pytrends.git
+
+# SerpAPI integration
+requests>=2.31.0
+python-dotenv>=1.0.0
